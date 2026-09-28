@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Pocket SmartAI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>💰 Pocket SmartAI</h1>
+
+    <p>
+        Your Smart Budget & Recommendation Assistant
+    </p>
+
+</header>
+
+
+<main>
+
+    <!-- HOME -->
+
+    <section class="card">
+
+        <h2>🏠 Home Interior Planner</h2>
+
+        <input
+            id="room"
+            type="text"
+            placeholder="Room e.g. Bedroom">
+
+        <input
+            id="homeBudget"
+            type="number"
+            placeholder="Budget ₹">
+
+        <input
+            id="quantity"
+            type="number"
+            placeholder="Number of items">
+
+        <select id="style">
+
+            <option value="Modern">Modern</option>
+
+            <option value="Minimal">
+                Minimal
+            </option>
+
+            <option value="Traditional">
+                Traditional
+            </option>
+
+            <option value="Luxury">
+                Luxury
+            </option>
+
+        </select>
+
+        <button onclick="generateHome()">
+            Generate Home Plan
+        </button>
+
+    </section>
+
+
+    <!-- PARTY -->
+
+    <section class="card">
+
+        <h2>🎉 Party Planner</h2>
+
+        <input
+            id="eventType"
+            type="text"
+            placeholder="Birthday / Wedding / Party">
+
+        <input
+            id="partyBudget"
+            type="number"
+            placeholder="Budget ₹">
+
+        <input
+            id="guests"
+            type="number"
+            placeholder="Number of Guests">
+
+        <input
+            id="location"
+            type="text"
+            placeholder="Location">
+
+        <button onclick="generateParty()">
+            Generate Party Plan
+        </button>
+
+    </section>
+
+
+    <!-- JEWELRY -->
+
+    <section class="card">
+
+        <h2>💎 Jewelry Planner</h2>
+
+        <input
+            id="jewelryBudget"
+            type="number"
+            placeholder="Budget ₹">
+
+        <input
+            id="occasion"
+            type="text"
+            placeholder="Wedding / Party / Casual">
+
+        <textarea
+            id="outfit"
+            placeholder="Describe your outfit">
+        </textarea>
+
+        <input
+            id="outfitImage"
+            type="file"
+            accept="image/*">
+
+        <button onclick="generateJewelry()">
+            Generate Jewelry Plan
+        </button>
+
+    </section>
+
+
+    <!-- RESULT -->
+
+    <section class="result-card">
+
+        <h2>🤖 AI Recommendation</h2>
+
+        <div id="loading">
+        </div>
+
+        <pre id="result">
+Your recommendation will appear here...
+        </pre>
+
+    </section>
+
+</main>
+
+
+<script src="{{ url_for('static',
+filename='js/app.js') }}">
+</script>
+
+</body>
+
+</html>
