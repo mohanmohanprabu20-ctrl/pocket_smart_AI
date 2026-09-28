@@ -1,252 +1,445 @@
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
-import os
+import streamlit as st
 
-from services.gemini_service import generate_text, generate_with_image
+# =========================================================
+# PAGE CONFIGURATION
+# =========================================================
 
-from prompts.home_prompt import home_prompt
-from prompts.party_prompt import party_prompt
-from prompts.jewelry_prompt import jewelry_prompt
+st.set_page_config(
+    page_title="Pocket Smart AI",
+    page_icon="✨",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
+# =========================================================
+# CUSTOM CSS
+# =========================================================
 
-app = Flask(__name__)
+st.markdown(
+    """
+    <style>
+        .main-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
 
-CORS(app)
+        .subtitle {
+            font-size: 18px;
+            color: #777;
+            margin-bottom: 30px;
+        }
 
-app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
+        .card {
+            padding: 25px;
+            border-radius: 18px;
+            border: 1px solid rgba(128,128,128,0.25);
+            margin-top: 20px;
+        }
 
-UPLOAD_FOLDER = "uploads"
+        .result-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        footer {
+            visibility: hidden;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
+# =========================================================
+# HEADER
+# =========================================================
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+st.markdown(
+    '<div class="main-title">✨ Pocket Smart AI</div>',
+    unsafe_allow_html=True,
+)
 
+st.markdown(
+    '<div class="subtitle">Your simple AI planning dashboard</div>',
+    unsafe_allow_html=True,
+)
 
-# -----------------------------------------
+# =========================================================
+# SIDEBAR
+# =========================================================
+
+st.sidebar.title("✨ Pocket Smart AI")
+
+st.sidebar.write("Choose a planner:")
+
+planner = st.sidebar.radio(
+    "",
+    [
+        "🏠 Home Planner",
+        "🎉 Party Planner",
+        "💎 Jewelry Planner",
+    ],
+)
+
+st.sidebar.divider()
+
+st.sidebar.info(
+    """
+    **Pocket Smart AI**
+
+    • Home planning  
+    • Party planning  
+    • Jewelry planning  
+
+    Built with Streamlit.
+    """
+)
+
+# =========================================================
 # HOME PLANNER
-# -----------------------------------------
+# =========================================================
 
-@app.route("/generate-home", methods=["POST"])
-def generate_home():
+def home_planner():
 
-    try:
+    st.header("🏠 Home Planner")
 
-        data = request.get_json()
+    st.write(
+        "Create a simple home plan based on your room, budget and preferred style."
+    )
 
-        room = data.get("room", "")
-        budget = data.get("budget", "")
-        quantity = data.get("quantity", "")
-        style = data.get("style", "")
+    col1, col2 = st.columns(2)
 
-        if not room or not budget:
-            return jsonify({
-                "success": False,
-                "message": "Room and budget are required."
-            }), 400
+    with col1:
 
-        prompt = home_prompt(
-            room,
-            budget,
-            quantity,
-            style
+        room = st.selectbox(
+            "Select Room",
+            [
+                "Living Room",
+                "Bedroom",
+                "Kitchen",
+                "Dining Room",
+                "Study Room",
+                "Office",
+                "Other",
+            ],
         )
 
-        result = generate_text(prompt)
+        budget = st.number_input(
+            "Budget (₹)",
+            min_value=0,
+            value=50000,
+            step=1000,
+        )
 
-        if not result:
-            result = default_home_result(budget)
+    with col2:
 
-        return jsonify({
-            "success": True,
-            "result": result
-        })
+        requirements = st.text_input(
+            "Requirements",
+            placeholder="Example: Sofa, TV unit, table",
+        )
 
-    except Exception as e:
+        style = st.selectbox(
+            "Preferred Style",
+            [
+                "Modern",
+                "Minimal",
+                "Traditional",
+                "Luxury",
+                "Industrial",
+                "Contemporary",
+            ],
+        )
 
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+    st.divider()
+
+    if st.button(
+        "✨ Generate Home Plan",
+        type="primary",
+        use_container_width=True,
+    ):
+
+        st.markdown(
+            '<div class="card">',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="result-title">🏠 Home Plan</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.write(f"**Room:** {room}")
+        st.write(f"**Budget:** ₹{budget:,}")
+        st.write(
+            f"**Requirements:** {requirements or 'Not specified'}"
+        )
+        st.write(f"**Style:** {style}")
+
+        st.subheader("Recommended Categories")
+
+        st.write("1. 💡 Lighting")
+        st.write("2. 🪟 Curtains")
+        st.write("3. 🗄️ Storage")
+        st.write("4. 🖼️ Wall Decor")
+        st.write("5. 🛋️ Furniture")
+        st.write("6. 🪴 Indoor Plants")
+
+        st.subheader("Suggested Budget Distribution")
+
+        st.write("• Furniture — 40%")
+        st.write("• Lighting — 15%")
+        st.write("• Curtains — 10%")
+        st.write("• Storage — 15%")
+        st.write("• Decoration — 10%")
+        st.write("• Plants / Miscellaneous — 10%")
+
+        st.success("Home plan generated successfully!")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
-# -----------------------------------------
+# =========================================================
 # PARTY PLANNER
-# -----------------------------------------
+# =========================================================
 
-@app.route("/generate-party", methods=["POST"])
-def generate_party():
+def party_planner():
 
-    try:
+    st.header("🎉 Party Planner")
 
-        data = request.get_json()
+    st.write(
+        "Create a party plan based on your event, budget and number of guests."
+    )
 
-        event_type = data.get("event_type", "")
-        budget = data.get("budget", "")
-        guests = data.get("guests", "")
-        location = data.get("location", "")
+    col1, col2 = st.columns(2)
 
-        if not event_type or not budget or not guests:
-            return jsonify({
-                "success": False,
-                "message": "Event, budget and guest count are required."
-            }), 400
+    with col1:
 
-        prompt = party_prompt(
-            event_type,
-            budget,
-            guests,
-            location
+        event = st.selectbox(
+            "Event Type",
+            [
+                "Birthday",
+                "Wedding",
+                "Engagement",
+                "Anniversary",
+                "College Event",
+                "Corporate Event",
+                "Other",
+            ],
         )
 
-        result = generate_text(prompt)
+        budget = st.number_input(
+            "Budget (₹)",
+            min_value=0,
+            value=100000,
+            step=5000,
+        )
 
-        if not result:
-            result = default_party_result(budget, guests)
+    with col2:
 
-        return jsonify({
-            "success": True,
-            "result": result
-        })
+        guests = st.number_input(
+            "Number of Guests",
+            min_value=1,
+            value=50,
+            step=1,
+        )
 
-    except Exception as e:
+        location = st.text_input(
+            "Location",
+            placeholder="Example: Chennai",
+        )
 
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+    st.divider()
+
+    if st.button(
+        "✨ Generate Party Plan",
+        type="primary",
+        use_container_width=True,
+    ):
+
+        st.markdown(
+            '<div class="card">',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="result-title">🎉 Party Plan</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.write(f"**Event:** {event}")
+        st.write(f"**Budget:** ₹{budget:,}")
+        st.write(f"**Guests:** {guests}")
+        st.write(
+            f"**Location:** {location or 'Not specified'}"
+        )
+
+        st.subheader("Suggested Budget Allocation")
+
+        food = budget * 0.50
+        decoration = budget * 0.15
+        cake = budget * 0.10
+        entertainment = budget * 0.10
+        photography = budget * 0.05
+        miscellaneous = budget * 0.10
+
+        st.write(f"🍽️ Food — ₹{food:,.0f}")
+        st.write(f"🎈 Decoration — ₹{decoration:,.0f}")
+        st.write(f"🎂 Cake — ₹{cake:,.0f}")
+        st.write(f"🎵 Entertainment — ₹{entertainment:,.0f}")
+        st.write(f"📸 Photography — ₹{photography:,.0f}")
+        st.write(f"📦 Miscellaneous — ₹{miscellaneous:,.0f}")
+
+        st.subheader("Planning Checklist")
+
+        st.checkbox("Confirm venue")
+        st.checkbox("Finalize guest list")
+        st.checkbox("Arrange food")
+        st.checkbox("Arrange decoration")
+        st.checkbox("Book photographer")
+        st.checkbox("Arrange entertainment")
+
+        st.success("Party plan generated successfully!")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
-# -----------------------------------------
+# =========================================================
 # JEWELRY PLANNER
-# -----------------------------------------
+# =========================================================
 
-@app.route("/generate-jewelry", methods=["POST"])
-def generate_jewelry():
+def jewelry_planner():
 
-    try:
+    st.header("💎 Jewelry Planner")
 
-        budget = request.form.get("budget")
-        occasion = request.form.get("occasion")
-        outfit = request.form.get("outfit", "")
+    st.write(
+        "Create a jewelry recommendation based on your budget, occasion and outfit."
+    )
 
-        image = request.files.get("image")
+    col1, col2 = st.columns(2)
 
-        if not budget or not occasion:
-            return jsonify({
-                "success": False,
-                "message": "Budget and occasion are required."
-            }), 400
+    with col1:
 
-        prompt = jewelry_prompt(
-            budget,
-            occasion,
-            outfit
+        budget = st.number_input(
+            "Budget (₹)",
+            min_value=0,
+            value=25000,
+            step=1000,
         )
 
-        if image:
+        occasion = st.selectbox(
+            "Occasion",
+            [
+                "Wedding",
+                "Engagement",
+                "Party",
+                "Festival",
+                "Casual",
+                "Formal Event",
+                "Other",
+            ],
+        )
 
-            result = generate_with_image(
-                prompt,
-                image
+    with col2:
+
+        outfit = st.text_input(
+            "Outfit",
+            placeholder="Example: Red saree with gold border",
+        )
+
+        uploaded_image = st.file_uploader(
+            "Upload Outfit Image (Optional)",
+            type=[
+                "jpg",
+                "jpeg",
+                "png",
+                "webp",
+            ],
+        )
+
+    if uploaded_image:
+
+        st.image(
+            uploaded_image,
+            caption="Uploaded Outfit",
+            use_container_width=True,
+        )
+
+    st.divider()
+
+    if st.button(
+        "✨ Generate Jewelry Plan",
+        type="primary",
+        use_container_width=True,
+    ):
+
+        st.markdown(
+            '<div class="card">',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="result-title">💎 Jewelry Plan</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.write(f"**Budget:** ₹{budget:,}")
+        st.write(f"**Occasion:** {occasion}")
+        st.write(
+            f"**Outfit:** {outfit or 'Not specified'}"
+        )
+
+        st.subheader("Recommended Jewelry")
+
+        st.write("💍 Necklace")
+        st.write("👂 Earrings")
+        st.write("💫 Bracelet / Bangles")
+        st.write("💎 Ring")
+
+        st.subheader("Suggested Budget")
+
+        necklace = budget * 0.45
+        earrings = budget * 0.25
+        bracelet = budget * 0.20
+        ring = budget * 0.10
+
+        st.write(f"Necklace — ₹{necklace:,.0f}")
+        st.write(f"Earrings — ₹{earrings:,.0f}")
+        st.write(f"Bracelet / Bangles — ₹{bracelet:,.0f}")
+        st.write(f"Ring — ₹{ring:,.0f}")
+
+        if uploaded_image:
+            st.info(
+                "Your outfit image was uploaded successfully and can be used as a visual reference."
             )
 
-        else:
+        st.success("Jewelry plan generated successfully!")
 
-            result = generate_text(prompt)
-
-        if not result:
-            result = default_jewelry_result(budget)
-
-        return jsonify({
-            "success": True,
-            "result": result
-        })
-
-    except Exception as e:
-
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
-# -----------------------------------------
-# FALLBACK RESULTS
-# -----------------------------------------
+# =========================================================
+# RUN SELECTED PLANNER
+# =========================================================
 
-def default_home_result(budget):
+if planner == "🏠 Home Planner":
 
-    return f"""
-HOME PLAN
+    home_planner()
 
-Budget: ₹{budget}
+elif planner == "🎉 Party Planner":
 
-Recommended categories:
+    party_planner()
 
-1. Lighting
-2. Curtains
-3. Storage
-4. Wall Decor
-5. Furniture
-6. Indoor Plants
+elif planner == "💎 Jewelry Planner":
 
-AI service is temporarily unavailable.
-Please try again later.
-
-Budget Status:
-Manual planning required.
-"""
+    jewelry_planner()
 
 
-def default_party_result(budget, guests):
+# =========================================================
+# FOOTER
+# =========================================================
 
-    return f"""
-PARTY PLAN
+st.divider()
 
-Budget: ₹{budget}
-
-Guests: {guests}
-
-Suggested allocation:
-
-Food: 50%
-Decoration: 15%
-Cake: 10%
-Entertainment: 10%
-Photography: 5%
-Miscellaneous: 10%
-
-AI service is temporarily unavailable.
-Please try again later.
-"""
-
-
-def default_jewelry_result(budget):
-
-    return f"""
-JEWELRY PLAN
-
-Budget: ₹{budget}
-
-Suggested categories:
-
-Necklace
-Earrings
-Bracelet/Bangles
-Ring
-
-AI service is temporarily unavailable.
-Please try again later.
-"""
-
-
-if __name__ == "__main__":
-
-    app.run(
-        debug=True,
-        host="0.0.0.0",
-        port=5000
-    )
+st.caption(
+    "✨ Pocket Smart AI • Powered by Streamlit"
+)
